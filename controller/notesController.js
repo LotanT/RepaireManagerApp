@@ -3,7 +3,7 @@ const Note = require('../models/Note');
 const asyncHandler = require('express-async-handler');
 
 const getAllNotes = asyncHandler(async (req, res) => {
-  const notes = await User.find().lean().exec();
+  const notes = await Note.find().lean().exec();
   if (!notes?.length) {
     return res.status(400).send({ message: 'No notes found' });
   }
@@ -14,7 +14,6 @@ const getAllNotes = asyncHandler(async (req, res) => {
       return { ...note, username: user.username };
     })
   );
-
   res.json(notesWithUser);
 });
 
@@ -28,9 +27,13 @@ const createNewNote = asyncHandler(async (req, res) => {
   if (duplicate) {
     return res.status(409).json({ message: 'Duplicate note title' });
   }
-
-  const note = await Note.create({ user, title, text });
-
+  console.log('before');
+  try {
+    const note = await Note.create({ user, title, text });
+  } catch (err) {
+    console.log(err);
+  }
+  console.log('after');
   if (note) {
     res.status(201).json({ message: `The Note ${title} has created` });
   } else {
