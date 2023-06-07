@@ -24,37 +24,37 @@ const login = asyncHandler(async (req, res) => {
       UserInfo: { username: foundUser.username, roles: foundUser.roles },
     },
     process.env.ACCESS_TOKEN_SECRET,
-    { expiresIn: '1m' }
+    { expiresIn: '15m' }
   );
 
   const refreshToken = jwt.sign(
     { username: foundUser.username },
     process.env.REFRESH_TOKEN_SECRET,
-    { expiresIn: '1d' }
+    { expiresIn: '7d' }
   );
 
   res.cookie('jwt', refreshToken, {
     httpOnly: true,
     secure: true,
-    sameSite: 'None',
+    sameSite: 'none',
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
   res.json({ accessToken });
 });
 
-const refresh = asyncHandler(async (req, res) => {
+const refresh = (req, res) => {
   const cookies = req.cookies;
-
+  console.log(req.cookies);
   if (!cookies?.jwt) return res.status(401).json({ message: 'Anauthorized' });
 
   const refreshToken = cookies.jwt;
+
   jwt.verify(
     refreshToken,
     process.env.REFRESH_TOKEN_SECRET,
     asyncHandler(async (err, decoded) => {
-      if (err) res.status(403).json({ message: 'Forbidden' });
-
+      if (err) return res.status(403).json({ message: 'Forbidden' });
       const foundUser = await User.findOne({ username: decoded.username });
       if (!foundUser) return res.status(401).json({ message: 'Anauthorized' });
 
@@ -66,13 +66,13 @@ const refresh = asyncHandler(async (req, res) => {
           },
         },
         process.env.ACCESS_TOKEN_SECRET,
-        { expiresIn: '1m' }
+        { expiresIn: '15m' }
       );
 
       res.json({ accessToken });
     })
   );
-});
+};
 
 const logout = (req, res) => {
   const cookies = req.cookies;
